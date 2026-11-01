@@ -5,10 +5,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<WebApplication1.database.dbConnection>();
 
 var app = builder.Build();
 
-CreateDatabaseIfNotExists();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -31,7 +31,7 @@ app.MapControllerRoute(
 
 app.Run();
 
-void CreateDatabaseIfNotExists()
+//void CreateDatabaseIfNotExists()
 {
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
         ?? throw new InvalidOperationException("Thiếu ConnectionStrings:DefaultConnection trong appsettings.json");
