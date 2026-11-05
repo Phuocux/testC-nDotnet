@@ -2,30 +2,38 @@ using MySqlConnector;
 
 namespace WebApplication1.database
 {
-    public class dbConnection
+    public sealed class dbConnection
     {
         private readonly string _connectionString;
+        private readonly string _databaseName;
+        private readonly string _serverConnectionString;
 
         public dbConnection(IConfiguration config)
         {
             _connectionString = config.GetConnectionString("DefaultConnection")
                 ?? throw new InvalidOperationException("Thiếu DefaultConnection");
-              var csb = new MySqlConnectionStringBuilder(_connectionString);
-                var dbName = csb.Database;
 
-                if (string.IsNullOrWhiteSpace(dbName))
-                    throw new InvalidOperationException("Chuỗi kết nối chưa có Database=...");
+            var connectionStringBuilder = new MySqlConnectionStringBuilder(_connectionString);
+            _databaseName = connectionStringBuilder.Database;
+            if (string.IsNullOrWhiteSpace(_databaseName))
+            {
+                throw new InvalidOperationException("Chuỗi kết nối chưa có Database=...");
+            }
 
-                csb.Database = "";
+            connectionStringBuilder.Database = string.Empty;
+            _serverConnectionString = connectionStringBuilder.ConnectionString;
+        }
 
-                using var connection = new MySqlConnection(csb.ConnectionString);
-                connection.Open();
+        public async Task EnsureDatabaseExistsAsync(CancellationToken cancellationToken = default)
+        {
+            await using var connection = new MySqlConnection(_serverConnectionString);
+            await connection.OpenAsync(cancellationToken);
 
-                using var cmd = new MySqlCommand(
-                    $"CREATE DATABASE IF NOT EXISTS `{dbName}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;",
-                    connection);
-                cmd.ExecuteNonQuery();
-                Console.WriteLine($"Database '{dbName}' sẵn sàng.");               
+            var quotedDatabaseName = $"`{_databaseName.Replace("`", "``")}`";
+            await using var command = new MySqlCommand(
+                $"CREATE DATABASE IF NOT EXISTS {quotedDatabaseName} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;",
+                connection);
+            await command.ExecuteNonQueryAsync(cancellationToken);
         }
 
         public MySqlConnection GetConnection()

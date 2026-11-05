@@ -1,10 +1,111 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@model AuthPageViewModel
+@{
+    ViewData["Title"] = "Đăng nhập / Đăng ký";
+    var activeTab = ViewData["ActiveTab"] as string ?? "login";
+    var authMessage = ViewData["AuthMessage"] as string;
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <h1 class="tieu-de">Danh sách sinh viên</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-   
-</div>
+<section class="auth-page">
+    <div class="auth-intro">
+        <span class="auth-eyebrow">CHÀO MỪNG BẠN</span>
+        <h1>Mọi hành trình<br />đều bắt đầu từ đây.</h1>
+        <p>Đăng nhập hoặc tạo tài khoản để tiếp tục trải nghiệm.</p>
+        <div class="auth-decoration" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <form asp-action="Logout" method="post" class="auth-logout">
+                <button class="auth-link" type="submit">Đăng xuất</button>
+            </form>
+        }
+    </div>
+
+    <div class="auth-card">
+        @if (!string.IsNullOrEmpty(authMessage))
+        {
+            <p class="auth-notice" role="status">@authMessage</p>
+        }
+
+        <div class="auth-tabs" role="tablist" aria-label="Chọn đăng nhập hoặc đăng ký">
+            <button class="auth-tab @(activeTab == "login" ? "is-active" : "")"
+                    id="login-tab" type="button" role="tab"
+                    aria-selected="@(activeTab == "login" ? "true" : "false")"
+                    aria-controls="login-panel" tabindex="@(activeTab == "login" ? "0" : "-1")">
+                Đăng nhập
+            </button>
+            <button class="auth-tab @(activeTab == "register" ? "is-active" : "")"
+                    id="register-tab" type="button" role="tab"
+                    aria-selected="@(activeTab == "register" ? "true" : "false")"
+                    aria-controls="register-panel" tabindex="@(activeTab == "register" ? "0" : "-1")">
+                Đăng ký
+            </button>
+        </div>
+
+        <section class="auth-panel" id="login-panel" role="tabpanel" aria-labelledby="login-tab"
+                 hidden="@(activeTab != "login")">
+            <h2>Chào mừng trở lại!</h2>
+            <p class="auth-subtitle">Nhập tên đăng nhập và mật khẩu của bạn.</p>
+
+            <form asp-action="Login" method="post" class="auth-form">
+                <div asp-validation-summary="ModelOnly" class="auth-errors"></div>
+                <div class="auth-field">
+                    <label asp-for="Login.Username">Tên đăng nhập</label>
+                    <input asp-for="Login.Username" autocomplete="username"
+                           placeholder="Nhập tên đăng nhập" required />
+                    <span asp-validation-for="Login.Username" class="auth-field-error"></span>
+                </div>
+                <div class="auth-field">
+                    <label asp-for="Login.Password">Mật khẩu</label>
+                    <input asp-for="Login.Password" autocomplete="current-password"
+                           placeholder="Nhập mật khẩu" required />
+                    <span asp-validation-for="Login.Password" class="auth-field-error"></span>
+                </div>
+                <button class="auth-submit" type="submit">Đăng nhập</button>
+            </form>
+
+            <p class="auth-switch">Chưa có tài khoản?
+                <button class="auth-link" type="button" data-auth-target="register">Đăng ký ngay</button>
+            </p>
+        </section>
+
+        <section class="auth-panel" id="register-panel" role="tabpanel"
+                 aria-labelledby="register-tab" hidden="@(activeTab != "register")">
+            <h2>Tạo tài khoản mới</h2>
+            <p class="auth-subtitle">Điền thông tin bên dưới để bắt đầu.</p>
+
+            <form asp-action="Register" method="post" class="auth-form">
+                <div asp-validation-summary="ModelOnly" class="auth-errors"></div>
+                <div class="auth-field">
+                    <label asp-for="Register.Username">Tên đăng nhập</label>
+                    <input asp-for="Register.Username" autocomplete="username"
+                           placeholder="Nhập tên đăng nhập" required />
+                    <span asp-validation-for="Register.Username" class="auth-field-error"></span>
+                </div>
+                <div class="auth-field">
+                    <label asp-for="Register.Password">Mật khẩu</label>
+                    <input asp-for="Register.Password" autocomplete="new-password"
+                           placeholder="Ít nhất 8 ký tự" minlength="8" required />
+                    <span asp-validation-for="Register.Password" class="auth-field-error"></span>
+                </div>
+                <div class="auth-field">
+                    <label asp-for="Register.ConfirmPassword">Xác nhận mật khẩu</label>
+                    <input asp-for="Register.ConfirmPassword" autocomplete="new-password"
+                           placeholder="Nhập lại mật khẩu" required />
+                    <span asp-validation-for="Register.ConfirmPassword" class="auth-field-error"></span>
+                </div>
+                <button class="auth-submit" type="submit">Tạo tài khoản</button>
+            </form>
+
+            <p class="auth-switch">Đã có tài khoản?
+                <button class="auth-link" type="button" data-auth-target="login">Đăng nhập</button>
+            </p>
+        </section>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
